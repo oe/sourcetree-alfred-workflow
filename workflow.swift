@@ -83,25 +83,34 @@ class SourceTree {
 			case objects = "$objects"
 		}
 	}
-	
-	struct ObjectItem: Codable {
-		let string: String?
-	}	
 }
 
 extension SourceTree.SourceTreePlist {
 	init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		version = try container.decode(Int.self, forKey: .version)
-		let objectItems = try container.decode([SourceTree.ObjectItem].self, forKey: .objects) 
-		objects = objectItems.map { $0.string } .compactMap { $0 }
+		
+		var objectsContainer = try container.nestedUnkeyedContainer(forKey: .objects)
+		var objects: [String] = []
+		while !objectsContainer.isAtEnd {
+			if let value = try? objectsContainer.decode(String.self) {
+				objects.append(value)
+			} else {
+				try objectsContainer.skip()
+			}
+		}
+		self.objects = objects
 	}
 }
 
-extension SourceTree.ObjectItem {
-	init(from decoder: Decoder) throws {
-		let container = try decoder.singleValueContainer()
-		string = try? container.decode(String.self)
+/**
+ * add skip to unkeyed container due to this missing feature in Swift
+ * https://forums.swift.org/t/pitch-unkeyeddecodingcontainer-movenext-to-skip-items-in-deserialization/22151/12
+ */
+struct Empty: Decodable { }
+extension UnkeyedDecodingContainer {
+	public mutating func skip() throws {
+		_ = try decode(Empty.self)
 	}
 }
 
