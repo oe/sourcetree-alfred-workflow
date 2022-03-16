@@ -105,5 +105,4 @@ extension SourceTree.ObjectItem {
 	}
 }
 
-
 SourceTree().parsePlist()
