@@ -26,7 +26,7 @@ class SourceTree {
 		print(String(data: data, encoding: .utf8)!)
 	}
 	
-	func toAlfredResult(_ objects: [String]) -> [AlfredItem] {
+	func toAlfredResult(_ objects: [String]) -> AlfredResult {
 		var namePathGroups: [(name: String, path: String)] = []
 		var name = ""
 		objects.forEach { str in
@@ -41,10 +41,11 @@ class SourceTree {
 			}
 		}
 		
-		return namePathGroups.map { (name, path) in
+		let items = namePathGroups.map { (name, path) in
 			AlfredItem(title: name, subtitle: path, arg: path, match: name)
 		}
-		
+
+		return AlfredResult(items: items)
 	}
 	
 	func readFile(path: URL) {
@@ -56,6 +57,10 @@ class SourceTree {
 		return url.appendingPathComponent("Library/Application Support/SourceTree/browser.plist")
 	}
 	
+	struct AlfredResult: Codable {
+		let items: [AlfredItem]
+	}
+
 	struct AlfredItem: Codable {
 		var title: String
 		var subtitle: String
