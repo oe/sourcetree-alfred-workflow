@@ -7,6 +7,9 @@ Notice: This is a swift clone of [Alfred_SourceTree](https://github.com/yourtion
 ### Prepare
 1. you must have [SourceTree](https://www.sourcetreeapp.com/) installed
 2. you should have unlocked [Powerpack in Alfred](https://www.alfredapp.com/powerpack/)
+3. make sure you have `swift` available in terminal.(**If you have `Xcode` installed, you can skip this step.**):
+   1. type `swift --version` in terminal, if you don't see any version info output, following next step to install it.
+   2. type `xcode-select --install` in terminal to install swift cli tools
 
 
 ### Install

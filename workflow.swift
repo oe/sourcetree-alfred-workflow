@@ -42,10 +42,16 @@ class SourceTree {
 		}
 		
 		let items = namePathGroups.map { (name, path) in
-			AlfredItem(title: name, subtitle: path, arg: path, match: name)
+			AlfredItem(title: name, subtitle: path, arg: path, match: spaceWords(name))
 		}
 
 		return AlfredResult(items: items)
+	}
+
+	func spaceWords(_ string: String) -> String {
+		string
+			.replacingOccurrences(of: #"[\/\\_-]"#, with: " ", options: .regularExpression, range: nil)
+			.replacingOccurrences(of: #"([A-Z])"#, with: " $1", options: .regularExpression, range: nil)
 	}
 	
 	func readFile(path: URL) {
