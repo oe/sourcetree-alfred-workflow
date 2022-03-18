@@ -1,6 +1,8 @@
 # SourceTree alfred workflow
 Search bookmarks in SourceTree and launch them in Alfred.
 
+![usage demo](assets/usage-demo.gif)
+
 *Credits*: This is a swift clone of [Alfred_SourceTree](https://github.com/yourtion/Alfred_SourceTree) by [yourtion](https://github.com/yourtion). Due to the latest release of macOS 12.3, python2 has been removed, which broke the original workflow. So I reimplemented this workflow in Swift. It should be much more stable and faster.
 
 ## Install
