@@ -4,9 +4,13 @@ import Foundation
 
 class SourceTree {
 	init() {	}
-	
-	func parsePlist () {
+
+	func run () {
 		guard let data = try? Data(contentsOf: plistPath) else {
+			let alfredResult = AlfredResult(items: [
+				AlfredItem(title: "SourceTree not installed", subtitle: "Press enter to open SourceTree homepage and download it", arg: "open \"https://sourcetreeapp.com/\"")
+			])
+			prettyPrint(alfredResult)
 			return
 		}
 		do {
@@ -14,8 +18,32 @@ class SourceTree {
 			let alfredResult = toAlfredResult(parsed.objects)
 			prettyPrint(alfredResult)
 		} catch {
-			print("failed to parse: ")
-			print(error)
+			let githubNewIssueUrl = "https://github.com/oe/sourcetree-alfred-workflow/issues/new"
+			var urlComponents = URLComponents(string: githubNewIssueUrl)!
+			let issueBody = """
+			error message:
+			\(error.localizedDescription)
+			
+			environment info:
+			macOS version: [pleaase fill your version]
+			swift version: [run `swift --version` to get its version]
+			"""
+			let queryItems = [
+				URLQueryItem(name: "title", value: "SourceTree plist parse error"),
+				URLQueryItem(name: "body", value: issueBody)
+			]
+			if urlComponents.queryItems == nil {
+				urlComponents.queryItems = []
+			}
+			urlComponents.queryItems!.append(contentsOf: queryItems)
+			let alfredResult = AlfredResult(items: [
+				AlfredItem(
+					title: "Error occurred",
+					subtitle: "Press enter to open github and report an issue to me",
+					arg: "open \"\(urlComponents.url?.absoluteString ?? githubNewIssueUrl)\""
+				)	
+			])
+			prettyPrint(alfredResult)
 		}
 	}
 	
@@ -40,9 +68,14 @@ class SourceTree {
 				name = str
 			}
 		}
+
+		var items: [AlfredItem] = namePathGroups.map { (name, path) in
+			let mod = AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
+			return AlfredItem(title: name, subtitle: path, match: spaceWords(name), arg: path, mods: AlfredItemMod(cmd: mod))
+		}
 		
-		let items = namePathGroups.map { (name, path) in
-			AlfredItem(title: name, subtitle: path, arg: path, match: spaceWords(name))
+		if items.isEmpty {
+			items.append(AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first"))
 		}
 
 		return AlfredResult(items: items)
@@ -70,8 +103,19 @@ class SourceTree {
 	struct AlfredItem: Codable {
 		var title: String
 		var subtitle: String
+		var match: String?
+		var arg: String?
+		var mods: AlfredItemMod?
+	}
+	
+	struct AlfredItemMod: Codable {
+		var cmd: AlfredItemModItem
+	}
+	
+	struct AlfredItemModItem: Codable {
+		var valid: Bool
 		var arg: String
-		var match: String
+		var subtitle: String
 	}
 	
 	struct SourceTreePlist: Codable {
@@ -114,4 +158,4 @@ extension UnkeyedDecodingContainer {
 	}
 }
 
-SourceTree().parsePlist()
+SourceTree().run()

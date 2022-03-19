@@ -21,6 +21,7 @@ Search bookmarks in SourceTree and launch them in Alfred.
 ## Usage
 launch alfred then input `st` and `keyword` separated with a space to search bookmarks, press enter to launch the bookmark in SourceTree.
 
+> press `cmd` + `enter` to reveal the repo in Finder
 
 ## Contributions and Support
 I'm new to swift, feel free to make a pull request if you are willing to improve the code quality or its functions.
