@@ -20,30 +20,29 @@ protocol Workflow {
 
 // MARK: Alfred Structs
 
-extension Workflow {
-  struct AlfredResult: Codable {
-    let items: [AlfredItem]
-  }
-  
-  struct AlfredItem: Codable {
-    var title: String
-    var subtitle: String
-    var match: String?
-    var arg: String?
-    var mods: AlfredMods?
-  }
-  
-  struct AlfredMods: Codable {
-    var cmd: AlfredItemModItem?
-    var alt:AlfredItemModItem?
-  }
-  
-  struct AlfredItemModItem: Codable {
-    var valid: Bool
-    var arg: String
-    var subtitle: String
-  }
+struct AlfredResult: Codable {
+  let items: [AlfredItem]
 }
+
+struct AlfredItem: Codable {
+  var title: String
+  var subtitle: String
+  var match: String?
+  var arg: String?
+  var mods: AlfredMods?
+}
+
+struct AlfredMods: Codable {
+  var cmd: AlfredItemModItem?
+  var alt:AlfredItemModItem?
+}
+
+struct AlfredItemModItem: Codable {
+  var valid: Bool
+  var arg: String
+  var subtitle: String
+}
+
 
 // MARK: pretty print for Encodable
 
@@ -58,13 +57,13 @@ extension Encodable {
 
 // MARK: convert AlfredItem to AlfredResult
 
-extension Workflow.AlfredItem {
+extension AlfredItem {
   func toAlfredResult() -> AlfredResult {
     return AlfredResult(items: [self])
   }
 }
 
-extension [Workflow.AlfredItem] {
+extension Array where Element == AlfredItem {
   func toAlfredResult() -> AlfredResult {
     return AlfredResult(items: self)
   }
@@ -106,7 +105,7 @@ extension Workflow {
     guard !query.isEmpty else {
       return items
     }
-    return items.filter { $0.name.fuzzySearch(query) }
+    return items.filter { $0.title.fuzzySearch(query) }
   }
 }
 
@@ -114,10 +113,12 @@ extension Workflow {
 
 extension Workflow {
   var queryArg: String {
-    CommandLine.arguments.first ?? ""
+    CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
   }
   
-  var emptyMessage = AlfredItem(title: "Nothing found", subtitle: "Please try another thing")
+  var emptyMessage: AlfredItem {
+    AlfredItem(title: "Nothing found", subtitle: "Please try another thing")
+  }
 
   func run() {
     if let errorMessage = errorMessage {
@@ -128,6 +129,7 @@ extension Workflow {
       emptyMessage.toAlfredResult().prettyPrint()
       return
     }
+    print(queryArg)
     filter(by: queryArg).toAlfredResult().prettyPrint()
   }
 }
@@ -136,24 +138,26 @@ extension Workflow {
 // MARK: SourceTree Workflow
 
 class SourceTree: Workflow {
-	init() {
+  var errorMessage: AlfredItem?
+  var items: [AlfredItem]
+  var emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
+  init() {
     guard let data = try? Data(contentsOf: Self.plistPath) else {
       errorMessage = AlfredItem(title: "SourceTree not installed", subtitle: "Press enter to open SourceTree homepage and download it", arg: "open \"https://sourcetreeapp.com/\"")
+      items = []
       return
     }
     
     do {
       let parsed = try PropertyListDecoder().decode(SourceTreePlist.self, from: data)
-      items = parsed.toAlfredResult()
-      if items.isEmpty {
-        emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
-      }
+      items = parsed.toAlfredItems()
     } catch  {
-      errorMessage = getErrorMessage(error)
+      items = []
+      errorMessage = Self.getErrorMessage(error)
     }
   }
   
-  func getErrorMessage(_ error: Error) -> AlfredItem {
+  static func getErrorMessage(_ error: Error) -> AlfredItem {
     let githubNewIssueUrl = "https://github.com/oe/sourcetree-alfred-workflow/issues/new"
     var urlComponents = URLComponents(string: githubNewIssueUrl)!
     let issueBody = """
@@ -172,20 +176,18 @@ class SourceTree: Workflow {
       urlComponents.queryItems = []
     }
     urlComponents.queryItems!.append(contentsOf: queryItems)
-    return AlfredResult(items: [
-      AlfredItem(
-        title: "Error occurred",
-        subtitle: "Press enter to open github and report an issue to me",
-        arg: "open \"\(urlComponents.url?.absoluteString ?? githubNewIssueUrl)\""
-      )
-    ])
+    return AlfredItem(
+      title: "Error occurred",
+      subtitle: "Press enter to open github and report an issue to me",
+      arg: "open \"\(urlComponents.url?.absoluteString ?? githubNewIssueUrl)\""
+    )
   }
 
-	/** SourceTree browser.plist path  */
-	static var plistPath: URL {
-		let url = FileManager.default.homeDirectoryForCurrentUser
-		return url.appendingPathComponent("Library/Application Support/SourceTree/browser.plist")
-	}
+  /** SourceTree browser.plist path  */
+  static var plistPath: URL {
+    let url = FileManager.default.homeDirectoryForCurrentUser
+    return url.appendingPathComponent("Library/Application Support/SourceTree/browser.plist")
+  }
 }
 
 // MARK: SourceTree Plist
@@ -205,23 +207,23 @@ extension SourceTree {
 // MARK: Decode SourceTree Plist then parse to Alfred struct
 
 extension SourceTree.SourceTreePlist {
-	init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-		version = try container.decode(Int.self, forKey: .version)
-		
-		var objectsContainer = try container.nestedUnkeyedContainer(forKey: .objects)
-		var objects: [String] = []
-		while !objectsContainer.isAtEnd {
-			if let value = try? objectsContainer.decode(String.self) {
-				objects.append(value)
-			} else {
-				try objectsContainer.skip()
-			}
-		}
-		self.objects = objects
-	}
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    version = try container.decode(Int.self, forKey: .version)
+    
+    var objectsContainer = try container.nestedUnkeyedContainer(forKey: .objects)
+    var objects: [String] = []
+    while !objectsContainer.isAtEnd {
+      if let value = try? objectsContainer.decode(String.self) {
+        objects.append(value)
+      } else {
+        try objectsContainer.skip()
+      }
+    }
+    self.objects = objects
+  }
   
-  func toAlfredItems(_ objects: [String]) -> [AlfredItem] {
+  func toAlfredItems() -> [AlfredItem] {
     var namePathGroups: [(name: String, path: String)] = []
     var name = ""
     objects.forEach { str in
@@ -236,12 +238,10 @@ extension SourceTree.SourceTreePlist {
       }
     }
     
-    var items: [AlfredItem] = namePathGroups.map { (name, path) in
+    return namePathGroups.map { (name, path) in
       let mod = AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
-      return AlfredItem(title: name, subtitle: path, match: spaceWords(name), arg: path, mods: AlfredItemMod(cmd: mod))
+      return AlfredItem(title: name, subtitle: path, arg: path, mods: AlfredMods(cmd: mod))
     }
-
-    return items
   }
 }
 
@@ -251,9 +251,9 @@ extension SourceTree.SourceTreePlist {
  */
 struct Empty: Decodable { }
 extension UnkeyedDecodingContainer {
-	public mutating func skip() throws {
-		_ = try decode(Empty.self)
-	}
+  public mutating func skip() throws {
+    _ = try decode(Empty.self)
+  }
 }
 
 SourceTree().run()
