@@ -24,7 +24,14 @@ launch alfred then input `st` and `keyword` separated with a space to search boo
 > press `cmd` + `enter` to reveal the repo in Finder
 
 ## Optimize for Intel Chip Mac
-If you are using old Intel Chip Mac, you may experience the unbearable lagging, that's because of Swift JIT Compiler are really slow on Intel Chip.
+If you are using old Intel Chip Mac, you may experience the unbearable lagging, that's because of Swift JIT Compiler is pretty slow on Intel Chip.
+
+You can follow the following steps to compile the workflow script to binary to speed up its response speed.
+
+> enter `st $compile` in Alfred then press `enter` key
+
+*If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the workflow, but only a little bit faster*
+
 
 ## Contributions and Support
 I'm new to swift, feel free to make a pull request if you are willing to improve the code quality or its functions.

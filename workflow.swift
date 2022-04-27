@@ -45,27 +45,29 @@ class Workflow {
 
 // MARK: Alfred Structs
 
-struct AlfredResult: Codable {
-  let items: [AlfredItem]
-}
-
-struct AlfredItem: Codable {
-  var title: String
-  var subtitle: String
-  var match: String?
-  var arg: String?
-  var mods: AlfredMods?
-}
-
-struct AlfredMods: Codable {
-  var cmd: AlfredItemModItem?
-  var alt:AlfredItemModItem?
-}
-
-struct AlfredItemModItem: Codable {
-  var valid: Bool
-  var arg: String
-  var subtitle: String
+extension Workflow {  
+  struct AlfredResult: Codable {
+    let items: [AlfredItem]
+  }
+  
+  struct AlfredItem: Codable {
+    var title: String
+    var subtitle: String
+    var match: String?
+    var arg: String?
+    var mods: AlfredMods?
+  }
+  
+  struct AlfredMods: Codable {
+    var cmd: AlfredItemModItem?
+    var alt:AlfredItemModItem?
+  }
+  
+  struct AlfredItemModItem: Codable {
+    var valid: Bool
+    var arg: String
+    var subtitle: String
+  }
 }
 
 
@@ -82,15 +84,15 @@ extension Encodable {
 
 // MARK: convert AlfredItem to AlfredResult
 
-extension AlfredItem {
-  func toAlfredResult() -> AlfredResult {
-    return AlfredResult(items: [self])
+extension Workflow.AlfredItem {
+  func toAlfredResult() -> Workflow.AlfredResult {
+    return Workflow.AlfredResult(items: [self])
   }
 }
 
-extension Array where Element == AlfredItem {
-  func toAlfredResult() -> AlfredResult {
-    return AlfredResult(items: self)
+extension Array where Element == Workflow.AlfredItem {
+  func toAlfredResult() -> Workflow.AlfredResult {
+    return Workflow.AlfredResult(items: self)
   }
 }
 
@@ -146,14 +148,13 @@ extension Workflow {
   }
 }
 
-
+// MARK: SourceTree Workflow implements
 
 class SourceTree: Workflow {
   override init() {
     super.init()
 
     emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
-    
 
     guard let data = try? Data(contentsOf: Self.plistPath) else {
       errorMessage = AlfredItem(title: "SourceTree not installed", subtitle: "Press enter to open SourceTree homepage and download it", arg: "open \"https://sourcetreeapp.com/\"")
@@ -183,8 +184,8 @@ class SourceTree: Workflow {
     let sourceFile = "\(destFile).swift"
     if query == "$compile" {
       list.append(AlfredItem(
-        title: "Compile script",
-        subtitle: "compile script to speed up workflow response time",
+        title: "Compile workflow script",
+        subtitle: "Compile workflow script to binary to speed up its response time",
         arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
       ))
     }
@@ -257,7 +258,7 @@ extension SourceTree.SourceTreePlist {
     self.objects = objects
   }
   
-  func toAlfredItems() -> [AlfredItem] {
+  func toAlfredItems() -> [Workflow.AlfredItem] {
     var namePathGroups: [(name: String, path: String)] = []
     var name = ""
     objects.forEach { str in
@@ -273,8 +274,8 @@ extension SourceTree.SourceTreePlist {
     }
     
     return namePathGroups.map { (name, path) in
-      let mod = AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
-      return AlfredItem(title: name, subtitle: path, arg: path, mods: AlfredMods(cmd: mod))
+      let mod = Workflow.AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
+      return Workflow.AlfredItem(title: name, subtitle: path, arg: path, mods: Workflow.AlfredMods(cmd: mod))
     }
   }
 }
