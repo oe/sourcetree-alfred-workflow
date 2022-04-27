@@ -138,12 +138,11 @@ extension Workflow {
 
 class SourceTree: Workflow {
   var errorMessage: AlfredItem?
-  var items: [AlfredItem]
+  var items: [AlfredItem] = []
   var emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
   init() {
     guard let data = try? Data(contentsOf: Self.plistPath) else {
       errorMessage = AlfredItem(title: "SourceTree not installed", subtitle: "Press enter to open SourceTree homepage and download it", arg: "open \"https://sourcetreeapp.com/\"")
-      items = []
       return
     }
     
@@ -151,7 +150,6 @@ class SourceTree: Workflow {
       let parsed = try PropertyListDecoder().decode(SourceTreePlist.self, from: data)
       items = parsed.toAlfredItems()
     } catch  {
-      items = []
       errorMessage = Self.getErrorMessage(error)
     }
   }
