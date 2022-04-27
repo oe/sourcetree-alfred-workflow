@@ -4,18 +4,43 @@ import Foundation
 
 // MARK: Workflow Protocol
 
-protocol Workflow {
+class Workflow {
   
   /// original result list
-  var items: [AlfredItem] { get }
+  var items: [AlfredItem] = []
   
   /// error message when error occored
-  var errorMessage: AlfredItem? { get }
+  var errorMessage: AlfredItem?
   
   /// message when items is empty
-  var emptyMessage: AlfredItem { get }
+  var emptyMessage: AlfredItem = AlfredItem(title: "Nothing found", subtitle: "Please try another thing")
 
-  func run()
+  var queryArg: String {
+    CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
+  }
+
+  func run() {
+    if let errorMessage = errorMessage {
+      errorMessage.toAlfredResult().prettyPrint()
+      return
+    }
+    guard !items.isEmpty else {
+      emptyMessage.toAlfredResult().prettyPrint()
+      return
+    }
+    filter(by: queryArg).toAlfredResult().prettyPrint()
+  }
+  
+  /// detect current machine chip arch
+  ///   reference: https://stackoverflow.com/questions/69624731/programmatically-detect-apple-silicon-vs-intel-cpu-in-a-mac-app-at-runtime
+  static var isAppleChip: Bool = {
+    var sysInfo = utsname()
+    let retVal = uname(&sysInfo)
+    
+    guard retVal == EXIT_SUCCESS else { return false }
+    
+    return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
+  }()
 }
 
 // MARK: Alfred Structs
@@ -43,6 +68,18 @@ struct AlfredItemModItem: Codable {
   var subtitle: String
 }
 
+
+// MARK: pretty print for Encodable
+
+extension Encodable {
+  func prettyPrint() {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    guard let data = try? encoder.encode(self) else { return }
+    print(String(data: data, encoding: .utf8)!)
+  }
+}
+
 // MARK: convert AlfredItem to AlfredResult
 
 extension AlfredItem {
@@ -54,17 +91,6 @@ extension AlfredItem {
 extension Array where Element == AlfredItem {
   func toAlfredResult() -> AlfredResult {
     return AlfredResult(items: self)
-  }
-}
-
-// MARK: pretty print for Encodable
-
-extension Encodable {
-  func prettyPrint() {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = .prettyPrinted
-    guard let data = try? encoder.encode(self) else { return }
-    print(String(data: data, encoding: .utf8)!)
   }
 }
 
@@ -108,7 +134,6 @@ extension String {
 // MARK: filter func for Workflow
 
 extension Workflow {
-  /// fuzzy search `query` in title and sorted by their weighted matching
   func filter(by query: String) -> [AlfredItem] {
     guard !query.isEmpty else {
       return items
@@ -121,52 +146,15 @@ extension Workflow {
   }
 }
 
-// MARK: default run implements for Workflow
 
-extension Workflow {
-  /// query argument to filter result from alfred
-  var queryArg: String {
-    CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
-  }
-  /// default empty message for there is nothing to present
-  var emptyMessage: AlfredItem {
-    AlfredItem(title: "Nothing found", subtitle: "Please try another thing")
-  }
-
-  /// default implement for `run()`
-  func run() {
-    if let errorMessage = errorMessage {
-      errorMessage.toAlfredResult().prettyPrint()
-      return
-    }
-    guard !items.isEmpty else {
-      emptyMessage.toAlfredResult().prettyPrint()
-      return
-    }
-    filter(by: queryArg).toAlfredResult().prettyPrint()
-  }
-
-  /// detect current machine chip arch
-  ///   reference: https://stackoverflow.com/questions/69624731/programmatically-detect-apple-silicon-vs-intel-cpu-in-a-mac-app-at-runtime
-  static var isAppleChip: Bool {
-    var sysInfo = utsname()
-    let retVal = uname(&sysInfo)
-    
-    guard retVal == EXIT_SUCCESS else { return false }
-    
-    return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
-  }()
-
-}
-
-
-// MARK: SourceTree Workflow
 
 class SourceTree: Workflow {
-  var errorMessage: AlfredItem?
-  var items: [AlfredItem] = []
-  var emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
-  init() {
+  override init() {
+    super.init()
+
+    emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
+    
+
     guard let data = try? Data(contentsOf: Self.plistPath) else {
       errorMessage = AlfredItem(title: "SourceTree not installed", subtitle: "Press enter to open SourceTree homepage and download it", arg: "open \"https://sourcetreeapp.com/\"")
       return
@@ -178,6 +166,29 @@ class SourceTree: Workflow {
     } catch  {
       errorMessage = Self.getErrorMessage(error)
     }
+  }
+  
+  override func run() {
+    let query = queryArg
+    if let errorMessage = errorMessage {
+      errorMessage.toAlfredResult().prettyPrint()
+      return
+    }
+    guard !items.isEmpty else {
+      emptyMessage.toAlfredResult().prettyPrint()
+      return
+    }
+    var list = filter(by: query)
+    let destFile = #file
+    let sourceFile = "\(destFile).swift"
+    if query == "$compile" {
+      list.append(AlfredItem(
+        title: "Compile script",
+        subtitle: "compile script to speed up workflow response time",
+        arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
+      ))
+    }
+    list.toAlfredResult().prettyPrint()
   }
   
   static func getErrorMessage(_ error: Error) -> AlfredItem {
