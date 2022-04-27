@@ -23,5 +23,8 @@ launch alfred then input `st` and `keyword` separated with a space to search boo
 
 > press `cmd` + `enter` to reveal the repo in Finder
 
+## Optimize for Intel Chip Mac
+If you are using old Intel Chip Mac, you may experience the unbearable lagging, that's because of Swift JIT Compiler are really slow on Intel Chip.
+
 ## Contributions and Support
 I'm new to swift, feel free to make a pull request if you are willing to improve the code quality or its functions.
