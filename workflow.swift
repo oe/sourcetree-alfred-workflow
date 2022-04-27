@@ -143,6 +143,18 @@ extension Workflow {
     }
     filter(by: queryArg).toAlfredResult().prettyPrint()
   }
+
+  /// detect current machine chip arch
+  ///   reference: https://stackoverflow.com/questions/69624731/programmatically-detect-apple-silicon-vs-intel-cpu-in-a-mac-app-at-runtime
+  static var isAppleChip: Bool {
+    var sysInfo = utsname()
+    let retVal = uname(&sysInfo)
+    
+    guard retVal == EXIT_SUCCESS else { return false }
+    
+    return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
+  }()
+
 }
 
 
