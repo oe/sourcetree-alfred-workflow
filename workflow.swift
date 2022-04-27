@@ -73,13 +73,17 @@ extension Array where Element == AlfredItem {
 //  fork from https://github.com/khoi/fuzzy-swift/blob/master/Sources/Fuzzy/Fuzzy.swift
 
 extension String {
-  func fuzzySearch(_ needle: String) -> Bool {
+  /// fuzzySearch string
+  ///   return matching weight, 0 for not match, bigger for less match
+  func fuzzySearch(_ needle: String) -> Int {
+    var weight = 1
     guard needle.count <= self.count else {
-      return false
+      return 0
     }
     
+    
     if needle == self {
-      return true
+      return weight
     }
     
     var needleIdx = needle.startIndex
@@ -87,14 +91,18 @@ extension String {
     
     while needleIdx != needle.endIndex {
       if haystackIdx == self.endIndex {
-        return false
+        return 0
       }
-      if needle[needleIdx] == self[haystackIdx] {
+      // compare ignore case and diacritic
+      if String(needle[needleIdx])
+          .compare(String(self[haystackIdx]), options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame  {
         needleIdx = needle.index(after: needleIdx)
+      } else {
+        weight += 1
       }
       haystackIdx = self.index(after: haystackIdx)
     }
-    return true
+    return weight
   }
 }
 
@@ -105,7 +113,11 @@ extension Workflow {
     guard !query.isEmpty else {
       return items
     }
-    return items.filter { $0.title.fuzzySearch(query) }
+    return items
+      .map( { ($0, $0.title.fuzzySearch(query)) })
+      .filter({ $0.1 > 0 })
+      .sorted(by: { $0.1 < $1.1 } )
+      .map( { $0.0 } )
   }
 }
 
