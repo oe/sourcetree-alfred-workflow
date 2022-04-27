@@ -129,7 +129,6 @@ extension Workflow {
       emptyMessage.toAlfredResult().prettyPrint()
       return
     }
-    print(queryArg)
     filter(by: queryArg).toAlfredResult().prettyPrint()
   }
 }
