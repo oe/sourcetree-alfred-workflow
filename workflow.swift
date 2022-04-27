@@ -43,18 +43,6 @@ struct AlfredItemModItem: Codable {
   var subtitle: String
 }
 
-
-// MARK: pretty print for Encodable
-
-extension Encodable {
-  func prettyPrint() {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = .prettyPrinted
-    guard let data = try? encoder.encode(self) else { return }
-    print(String(data: data, encoding: .utf8)!)
-  }
-}
-
 // MARK: convert AlfredItem to AlfredResult
 
 extension AlfredItem {
@@ -66,6 +54,17 @@ extension AlfredItem {
 extension Array where Element == AlfredItem {
   func toAlfredResult() -> AlfredResult {
     return AlfredResult(items: self)
+  }
+}
+
+// MARK: pretty print for Encodable
+
+extension Encodable {
+  func prettyPrint() {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+    guard let data = try? encoder.encode(self) else { return }
+    print(String(data: data, encoding: .utf8)!)
   }
 }
 
@@ -109,6 +108,7 @@ extension String {
 // MARK: filter func for Workflow
 
 extension Workflow {
+  /// fuzzy search `query` in title and sorted by their weighted matching
   func filter(by query: String) -> [AlfredItem] {
     guard !query.isEmpty else {
       return items
@@ -124,14 +124,16 @@ extension Workflow {
 // MARK: default run implements for Workflow
 
 extension Workflow {
+  /// query argument to filter result from alfred
   var queryArg: String {
     CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
   }
-  
+  /// default empty message for there is nothing to present
   var emptyMessage: AlfredItem {
     AlfredItem(title: "Nothing found", subtitle: "Please try another thing")
   }
 
+  /// default implement for `run()`
   func run() {
     if let errorMessage = errorMessage {
       errorMessage.toAlfredResult().prettyPrint()
