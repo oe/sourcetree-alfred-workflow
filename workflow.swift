@@ -198,7 +198,7 @@ class SourceTree: Workflow {
             arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
           )
     
-    if !Self.isAppleChip && Self.isScript {
+    if Self.isScript {
       list.insert(compileScript, at: 0)
     } else if query == "$compile" {
       list.append(compileScript)
@@ -291,7 +291,7 @@ extension SourceTree.SourceTreePlist {
       let alt = Workflow.AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
       // default using `code` aka VS Code to open project
       let editCli = ProcessInfo.processInfo.environment["EDITOR_CLI"] ?? "code"
-      let cmd = Workflow.AlfredItemModItem(valid: true, arg: "\(editCli) \"\(path)\"", subtitle: "Open repo in your preferred code editor")
+      let cmd = Workflow.AlfredItemModItem(valid: true, arg: "\(editCli) \"\(path)\"", subtitle: "Open in code editor")
       return Workflow.AlfredItem(title: name, subtitle: path, arg: path, mods: Workflow.AlfredMods(cmd: cmd, alt: alt))
     }
   }

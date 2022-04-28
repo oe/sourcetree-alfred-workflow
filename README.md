@@ -35,14 +35,14 @@ additionnal:
 > select a bookmark,  press `option` + `enter` to reveal the repo in Finder
 
 
-## Optimize for Intel Chip Mac
+## Build script to binary
 If you are using old Intel Chip Mac, you may experience the unbearable lagging, that's because of Swift JIT Compiler is pretty slow on Intel Chip.
 
 You can follow the following steps to compile the workflow script to binary to speed up its response speed.
 
 > enter `st $compile` in Alfred then press `enter` key
 
-*If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the workflow, but only a little bit faster*
+If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the workflow for better performance
 
 
 ## Custom your perferred code editor
