@@ -45,7 +45,7 @@ You can follow the following steps to compile the workflow script to binary to s
 *If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the workflow, but only a little bit faster*
 
 
-## custom your perferred code editor
+## Custom your perferred code editor
 1. Open Alfred Preferences panel
 2. find and click the `SourceTree` in **Wokflows** list
 3. click the variable icon *[𝓍]* in the top right to show the variable popup
