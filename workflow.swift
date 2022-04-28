@@ -41,6 +41,13 @@ class Workflow {
     
     return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
   }()
+  
+  /// detect whether workflow is using as a swift script
+  ///   false for binay
+  static var isScript: Bool = {
+    let env = ProcessInfo.processInfo.environment
+    return env["LIBRARY_PATH"] != nil && env["SDKROOT"] != nil
+  }()
 }
 
 // MARK: Alfred Structs
@@ -180,14 +187,21 @@ class SourceTree: Workflow {
       return
     }
     var list = filter(by: query)
-    let destFile = #file
+    var destFile = #file
+    // remove the possible extension
+    destFile = destFile.replacingOccurrences(of: ".swift", with: "")
     let sourceFile = "\(destFile).swift"
-    if query == "$compile" {
-      list.append(AlfredItem(
-        title: "Compile workflow script",
-        subtitle: "Compile workflow script to binary to speed up its response time",
-        arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
-      ))
+
+    let compileScript = AlfredItem(
+            title: "✈️Compile workflow script",
+            subtitle: "Compile workflow script to binary to speed up its response time",
+            arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
+          )
+    
+    if !Self.isAppleChip && Self.isScript {
+      list.insert(compileScript, at: 0)
+    } else if query == "$compile" {
+      list.append(compileScript)
     }
     list.toAlfredResult().prettyPrint()
   }
@@ -274,8 +288,11 @@ extension SourceTree.SourceTreePlist {
     }
     
     return namePathGroups.map { (name, path) in
-      let mod = Workflow.AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
-      return Workflow.AlfredItem(title: name, subtitle: path, arg: path, mods: Workflow.AlfredMods(cmd: mod))
+      let alt = Workflow.AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
+      // default using `code` aka VS Code to open project
+      let editCli = ProcessInfo.processInfo.environment["EDITOR_CLI"] ?? "code"
+      let cmd = Workflow.AlfredItemModItem(valid: true, arg: "\(editCli) \"\(path)\"", subtitle: "Open repo in your preferred code editor")
+      return Workflow.AlfredItem(title: name, subtitle: path, arg: path, mods: Workflow.AlfredMods(cmd: cmd, alt: alt))
     }
   }
 }
