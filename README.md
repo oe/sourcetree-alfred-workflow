@@ -7,7 +7,7 @@ Search bookmarks in SourceTree and launch them in Alfred.
 
 ## Features
 1. support fuzzy search
-2. can open repo in your code editor directly by press <kbd>cmd</kbd> + <kbd>enter</kbd>, using VS Code by default, you can [custom it](#specify-your-perferred-code-editor)
+2. can open repo in your code editor directly by press <kbd>cmd</kbd> + <kbd>enter</kbd>, using VS Code by default, you can [custom it](#custom-your-perferred-code-editor)
 3. can reveal repo in find by press <kbd>option</kbd> + <kbd>enter</kbd>
 
 
