@@ -41,6 +41,13 @@ class Workflow {
     
     return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
   }()
+  
+  /// detect whether workflow is using as a swift script
+  ///   false for binay
+  static var isScript: Bool = {
+    let env = ProcessInfo.processInfo.environment
+    return env["LIBRARY_PATH"] != nil && env["SDKROOT"] != nil
+  }()
 }
 
 // MARK: Alfred Structs
@@ -182,12 +189,17 @@ class SourceTree: Workflow {
     var list = filter(by: query)
     let destFile = #file
     let sourceFile = "\(destFile).swift"
-    if query == "$compile" {
-      list.append(AlfredItem(
-        title: "Compile workflow script",
-        subtitle: "Compile workflow script to binary to speed up its response time",
-        arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
-      ))
+
+    let compileScript = AlfredItem(
+            title: "✈️Compile workflow script",
+            subtitle: "Compile workflow script to binary to speed up its response time",
+            arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
+          )
+    
+    if !Self.isAppleChip && Self.isScript {
+      list.insert(compileScript, at: 0)
+    } else if query == "$compile" {
+      list.append(compileScript)
     }
     list.toAlfredResult().prettyPrint()
   }
