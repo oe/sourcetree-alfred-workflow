@@ -1,5 +1,5 @@
 # SourceTree alfred workflow
-Search bookmarks in SourceTree and launch them in Alfred.
+Search bookmarks in SourceTree and launch them via Alfred.
 
 ![usage demo](assets/usage-demo.gif)
 
