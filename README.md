@@ -36,7 +36,7 @@ additionnal:
 
 
 ## Build script to binary
-If you are using old Intel Chip Mac, you may experience the unbearable lagging, that's because of Swift JIT Compiler is pretty slow on Intel Chip.
+If you are using an old Intel Chip Mac, you may experience the unbearable lagging, that's because of Swift JIT Compiler is pretty slow on Intel Chip.
 
 You can follow the following steps to compile the workflow script to binary to speed up its response speed.
 
@@ -48,18 +48,20 @@ If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the w
 ## Custom your perferred code editor
 1. Open Alfred Preferences panel
 2. find and click the `SourceTree` in **Wokflows** list
-3. click the variable icon *[𝓍]* in the top right to show the variable popup
-4. add a variable named `EDITOR_CLI`, set its value to your favorite editor's cli name, such as:
-	> `subl` for Sublime Text  
-	> `xed` for Xcode  
-   
-   do not remove the variable `PATH`, if your editor cli name not
-	found, you may edit `PATH` then append its path to existing
-	value, be aware of the PATH format.  
-   
+3. click `Configure Workflow...` button bellow the workflow name
+4. change the value of `Code Editor Cli`, set its value to your favorite editor's cli name, such as:
+   1. `code` for VSCode (default)
+   2. `xed` for Xcode
+   3. `subl` for Sublime Text
+   4. `webstorm` for WebStorm
+   5. `idea` for IntelliJ IDEA    
+   Tips: if your preferred editor not available in CLI, make sure you've append it's binary file's directory to the `PATH`
+
 5. click `save` button to save variable settings
 6. click the bug 🐞 icon in the top right to show the debug log
-7. try yourself, if it works, congratulations; if not, check the debug log, make sure the cli name is existing and correct, and `PATH` contains your cli
+7.  try yourself, if it works, congratulations; if not, check the debug log, make sure the cli name is existing and correct, and `PATH` contains your cli
+
+
 
 ## Contributions and Support
 I'm new to swift, feel free to make a pull request if you are willing to improve the code quality or its functions.
