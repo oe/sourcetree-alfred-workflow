@@ -33,14 +33,14 @@ class Workflow {
   
   /// detect current machine chip arch
   ///   reference: https://stackoverflow.com/questions/69624731/programmatically-detect-apple-silicon-vs-intel-cpu-in-a-mac-app-at-runtime
-  static var isAppleChip: Bool = {
-    var sysInfo = utsname()
-    let retVal = uname(&sysInfo)
+  // static var isAppleChip: Bool = {
+  //   var sysInfo = utsname()
+  //   let retVal = uname(&sysInfo)
     
-    guard retVal == EXIT_SUCCESS else { return false }
+  //   guard retVal == EXIT_SUCCESS else { return false }
     
-    return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
-  }()
+  //   return String(cString: &sysInfo.machine.0, encoding: .utf8) == "arm64"
+  // }()
   
   /// detect whether workflow is using as a swift script
   ///   false for binay
@@ -198,9 +198,9 @@ class SourceTree: Workflow {
             arg: "swiftc \"\(sourceFile)\" -O -o \"\(destFile)\""
           )
     
-    if Self.isScript {
+    /* if Self.isScript {
       list.insert(compileScript, at: 0)
-    } else if query == "$compile" {
+    } else */if query == "$compile" {
       list.append(compileScript)
     }
     list.toAlfredResult().prettyPrint()
