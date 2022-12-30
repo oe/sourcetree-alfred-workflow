@@ -163,8 +163,12 @@ class SourceTree: Workflow {
 
     emptyMessage = AlfredItem(title: "Your SourceTree Bookmark Is Empty ", subtitle: "Please add repos to SourceTree first")
 
-    guard let data = try? Data(contentsOf: Self.plistPath) else {
+    guard Self.isSourceTreeInstalled() else {
       errorMessage = AlfredItem(title: "SourceTree not installed", subtitle: "Press enter to open SourceTree homepage and download it", arg: "open \"https://sourcetreeapp.com/\"")
+      return
+    }
+    guard let data = try? Data(contentsOf: Self.plistPath) else {
+      errorMessage = emptyMessage
       return
     }
     
@@ -236,6 +240,10 @@ class SourceTree: Workflow {
   static var plistPath: URL {
     let url = FileManager.default.homeDirectoryForCurrentUser
     return url.appendingPathComponent("Library/Application Support/SourceTree/browser.plist")
+  }
+
+  static func isSourceTreeInstalled() -> Bool {
+    return FileManager.default.fileExists(atPath: "/Applications/SourceTree.app")
   }
 }
 
