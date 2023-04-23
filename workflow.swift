@@ -298,10 +298,58 @@ extension SourceTree.SourceTreePlist {
     return namePathGroups.map { (name, path) in
       let alt = Workflow.AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
       // default using `code` aka VS Code to open project
-      let editCli = ProcessInfo.processInfo.environment["EDITOR_CLI"] ?? "code"
+      let editCli = parseEditorCliConfig(with: path)
       let cmd = Workflow.AlfredItemModItem(valid: true, arg: "\(editCli) \"\(path)\"", subtitle: "Open in code editor")
       return Workflow.AlfredItem(title: name, subtitle: path, arg: path, mods: Workflow.AlfredMods(cmd: cmd, alt: alt))
     }
+  }
+
+  private var defaultEditorCliConfig: String{
+    get { 
+      """
+        code=*
+      """
+    }
+  }
+  private func parseEditorCliConfig(with path: String) -> String {
+    let editorCliConfig = ProcessInfo.processInfo.environment["EDITOR_CLI_CONFIG"] ?? defaultEditorCliConfig
+
+    let lines = editorCliConfig.components(separatedBy: .newlines)
+    var list = [(String, [String])]()
+
+    for row in lines {
+      let row = row.components(separatedBy: "=")
+      let cli = row[0]
+      let extensions = row[1]
+
+      list.append((cli, Array(extensions.components(separatedBy: ","))))
+    }
+
+    for (cli, extensions) in list {
+      guard !extensions.isEmpty else {
+        continue
+      }
+
+      if extensions[0] == "*" {
+        return cli
+      }
+
+      let fileManager = FileManager.default
+      let enumerator = fileManager.enumerator(atPath: path)
+
+      while let element = enumerator?.nextObject() as? String {
+        for ext in extensions {
+          if element.hasSuffix(ext) {
+            return cli
+          }
+        }
+        // only check the top level files
+        enumerator?.skipDescendants()
+      }
+    }
+
+    // if we didn't find anything then we just return "code"
+    return "code"
   }
 }
 
