@@ -49,12 +49,25 @@ If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the w
 1. Open Alfred Preferences panel
 2. find and click the `SourceTree` in **Wokflows** list
 3. click `Configure Workflow...` button bellow the workflow name
-4. change the value of `Code Editor Cli`, set its value to your favorite editor's cli name, such as:
+4. change the value of `Code Editor Config`, , multiple values can be set depending on the file extensions in the folder.
+
+   Example:
+   ```sh
+   xed=.xcodeproj,.xcworkspace
+   studio=.gradle
+   code=*
+   ```
+
+   The order of the list matters, once a match has been found the script will continue and not check the other options.
+
+   Here are some common editors' cli names:
+
    1. `code` for VSCode (default)
    2. `xed` for Xcode
    3. `subl` for Sublime Text
    4. `webstorm` for WebStorm
-   5. `idea` for IntelliJ IDEA    
+   5. `idea` for IntelliJ IDEA 
+
    Tips: if your preferred editor not available in CLI, make sure you've append it's binary file's directory to the `PATH`
 
 5. click `save` button to save variable settings
@@ -65,3 +78,6 @@ If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the w
 
 ## Contributions and Support
 I'm new to swift, feel free to make a pull request if you are willing to improve the code quality or its functions.
+
+## Thanks
+* [Collin Hemeltjen](https://github.com/CollinHemeltjen) for [smart editor support](https://github.com/oe/sourcetree-alfred-workflow/pull/4)

@@ -298,58 +298,89 @@ extension SourceTree.SourceTreePlist {
     return namePathGroups.map { (name, path) in
       let alt = Workflow.AlfredItemModItem(valid: true, arg: "open \"\(path)\"", subtitle: "Reveal in Finder")
       // default using `code` aka VS Code to open project
-      let editCli = parseEditorCliConfig(with: path)
+      let editCli = Self.parseEditorCliConfig(with: path)
       let cmd = Workflow.AlfredItemModItem(valid: true, arg: "\(editCli) \"\(path)\"", subtitle: "Open in code editor")
       return Workflow.AlfredItem(title: name, subtitle: path, arg: path, mods: Workflow.AlfredMods(cmd: cmd, alt: alt))
     }
   }
 
-  private var defaultEditorCliConfig: String{
-    get { 
-      """
-        code=*
-      """
-    }
-  }
-  private func parseEditorCliConfig(with path: String) -> String {
+  // parse configurations
+  // support comments(start with #)
+  private static let editConfigs: [(cli: String, extensions: [String])] = {
+    let editorCli = ProcessInfo.processInfo.environment["EDITOR_CLI"] ?? "code"
+    let defaultEditorCliConfig = """
+    \(editorCli)=*
+    """
+
     let editorCliConfig = ProcessInfo.processInfo.environment["EDITOR_CLI_CONFIG"] ?? defaultEditorCliConfig
 
     let lines = editorCliConfig.components(separatedBy: .newlines)
-    var list = [(String, [String])]()
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      // remove empty lines and comments(start with #)
+      .filter { !$0.starts(with: "#") && !$0.isEmpty }
 
-    for row in lines {
-      let row = row.components(separatedBy: "=")
-      let cli = row[0]
-      let extensions = row[1]
+    let components = lines.map { $0.components(separatedBy: "=") }
+      .filter { $0.count == 2 }
 
-      list.append((cli, Array(extensions.components(separatedBy: ","))))
-    }
+    return components.map {
+        // sanitize cli and extensions
+        let cli = $0[0].trimmingCharacters(in: .whitespacesAndNewlines)
+        let exts = $0[1].trimmingCharacters(in: .whitespacesAndNewlines)
+          .components(separatedBy: ",")
+          // lowercase for case insensitive compare
+          .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
+          .filter { !$0.isEmpty }
 
-    for (cli, extensions) in list {
-      guard !extensions.isEmpty else {
-        continue
+        return (cli, exts)
       }
+      .filter { !$0.1.isEmpty }
+  }()
 
+  private static let defaultEditorCli: String = {
+    for (cli, extensions) in editConfigs {
       if extensions[0] == "*" {
         return cli
+      }
+    }
+    // if we didn't find anything then we just return "code"
+    return "code"
+  }()
+
+  private static func parseEditorCliConfig(with path: String) -> String {
+    // cache enumerated files
+    var files: [String] = []
+
+    for (cli, extensions) in editConfigs {
+      if extensions[0] == "*" {
+        return cli
+      }
+
+      if !files.isEmpty {
+        for file in files {
+          if extensions.contains(where: { file.hasSuffix($0) }) {
+            return cli
+          }
+        }
+        continue
       }
 
       let fileManager = FileManager.default
       let enumerator = fileManager.enumerator(atPath: path)
 
       while let element = enumerator?.nextObject() as? String {
-        for ext in extensions {
-          if element.hasSuffix(ext) {
-            return cli
-          }
+        // search with lowercased
+        let file = element.lowercased()
+        if extensions.contains(where:  { file.hasSuffix($0) }) {
+          return cli
         }
+        files.append(file)
         // only check the top level files
         enumerator?.skipDescendants()
       }
     }
 
-    // if we didn't find anything then we just return "code"
-    return "code"
+
+    return defaultEditorCli
   }
 }
 
