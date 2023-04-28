@@ -53,7 +53,7 @@ If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the w
 
    Example:
    ```sh
-   xed=.xcodeproj,.xcworkspace
+   xed=.xcodeproj,.xcworkspace,package.swift
    studio=.gradle
    code=*
    ```
