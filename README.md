@@ -7,7 +7,7 @@ Search bookmarks in SourceTree and launch them via Alfred.
 
 ## Features
 1. support fuzzy search
-2. can open repo in your code editor directly by press <kbd>cmd</kbd> + <kbd>enter</kbd>, using VS Code by default, you can [custom it](#custom-your-perferred-code-editor)
+2. can open repo in your code editor directly by press <kbd>cmd</kbd> + <kbd>enter</kbd>, using VS Code by default, you can [custom it](#custom-your-preferred-code-editor)
 3. can reveal repo in find by press <kbd>option</kbd> + <kbd>enter</kbd>
 
 
@@ -30,8 +30,8 @@ Promotion: using [sourcetree-custom-actions](https://github.com/oe/sourcetree-cu
 
 launch alfred then input `st` and `keyword` separated with a space to search bookmarks, press enter to launch the bookmark in SourceTree.
 
-additionnal:
-> select a bookmark,  press `cmd` + `enter` to open the repo in your favorite code editor, see [how to custom code editor](#custom-your-perferred-code-editor)
+Additionally:
+> select a bookmark,  press `cmd` + `enter` to open the repo in your favorite code editor, see [how to custom code editor](#custom-your-preferred-code-editor)
 > select a bookmark,  press `option` + `enter` to reveal the repo in Finder
 
 
@@ -45,20 +45,25 @@ You can follow the following steps to compile the workflow script to binary to s
 If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the workflow for better performance
 
 
-## Custom your perferred code editor
+## Custom your preferred code editor
 1. Open Alfred Preferences panel
-2. find and click the `SourceTree` in **Wokflows** list
+2. find and click the `SourceTree` in **Workflows** list
 3. click `Configure Workflow...` button bellow the workflow name
 4. change the value of `Code Editor Config`, , multiple values can be set depending on the file extensions in the folder.
 
    Example:
    ```sh
+   # configuration format:
+   # [editor cli name]=[extension1, extension2,...]
+   # extension case does not matter
+   # example, using Xcode for XCode projects
    xed=.xcodeproj,.xcworkspace,package.swift
-   studio=.gradle
+
+   # using vscode for default
    code=*
    ```
 
-   The order of the list matters, once a match has been found the script will continue and not check the other options.
+   The order of the list is important, the first one that matches will be used.
 
    Here are some common editors' cli names:
 
@@ -68,7 +73,9 @@ If you are using Apple Silicon Macs(like M1, M1 Pro), you can also compile the w
    4. `webstorm` for WebStorm
    5. `idea` for IntelliJ IDEA 
 
-   Tips: if your preferred editor not available in CLI, make sure you've append it's binary file's directory to the `PATH`
+   Tips: 
+   1. If your preferred editor not available in CLI, make sure you've append it's binary file's directory to the `PATH`
+   2. You may need to authorize Alfred to access the folders containing the repos., see [here](https://www.alfredapp.com/help/getting-started/permissions/)
 
 5. click `save` button to save variable settings
 6. click the bug 🐞 icon in the top right to show the debug log
